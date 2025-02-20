@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Recorder</title>
+</head>
+<body>
+    <h1>Audio Recorder</h1>
+    
+    <div>
+        <button id="startButton">Start Recording</button>
+        <button id="stopButton">Stop Recording</button>
+        <button id="clearButton">Clear Queue</button>
+    </div>
+
+    <div id="status">
+        <p>Queue size: <span id="queueSize">0</span></p>
+        <p>Network status: <span id="networkStatus">healthy</span></p>
+        <p>Last error: <span id="lastError">none</span></p>
+    </div>
+
+    <script src="/static/recorder.js"></script>
+    <script>
+        // Add event listeners after record.js is loaded
+        document.getElementById('startButton').addEventListener('click', () => startRecording());
+        document.getElementById('stopButton').addEventListener('click', () => stopRecording());
+        document.getElementById('clearButton').addEventListener('click', () => clearQueue());
+
+        // Add error display
+        window.displayError = function(error) {
+            document.getElementById('lastError').textContent = error;
+            setTimeout(() => {
+                document.getElementById('lastError').textContent = 'none';
+            }, 5000);  // Clear error after 5 seconds
+        }
+        
+        // Override updateNetworkHealth after it's defined
+        const originalUpdateNetworkHealth = updateNetworkHealth;
+        updateNetworkHealth = function() {
+            originalUpdateNetworkHealth();
+            document.getElementById('queueSize').textContent = queueSize;
+            document.getElementById('networkStatus').textContent = networkHealthy ? 'healthy' : 'unhealthy';
+        }
+
+        // Add error display
+        window.displayError = function(error) {
+            document.getElementById('lastError').textContent = error;
+            setTimeout(() => {
+                document.getElementById('lastError').textContent = 'none';
+            }, 5000);  // Clear error after 5 seconds
+        }
+    </script>
+</body>
+</html>
