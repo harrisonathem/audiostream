@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Recorder</title>
+    <style>
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .toggle-switch label {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Audio Recorder</h1>
@@ -14,25 +24,54 @@
         <button id="clearButton">Clear Queue</button>
     </div>
 
+    <div class="toggle-switch">
+        <label for="endpointToggle">Use Separate Endpoint:</label>
+        <input type="checkbox" id="endpointToggle" checked>
+    </div>
+
     <div id="status">
         <p>Queue size: <span id="queueSize">0</span></p>
         <p>Network status: <span id="networkStatus">healthy</span></p>
         <p>Last error: <span id="lastError">none</span></p>
+        <p>Current endpoint: <span id="currentEndpoint">/chunk_seperate</span></p>
     </div>
 
+    <script>
+        // Define global settings before loading recorder.js
+        window.recordingSettings = {
+            UPLOAD_ENDPOINT: '/chunk_seperate'
+        };
+    </script>
     <script src="/static/recorder.js"></script>
     <script>
-        // Add event listeners after record.js is loaded
-        document.getElementById('startButton').addEventListener('click', () => startRecording());
-        document.getElementById('stopButton').addEventListener('click', () => stopRecording());
-        document.getElementById('clearButton').addEventListener('click', () => clearQueue());
+        // Wait for recorder.js to load
+        window.addEventListener('load', () => {
+            const toggle = document.getElementById('endpointToggle');
+            const endpointDisplay = document.getElementById('currentEndpoint');
+            
+            // Initialize with current state
+            window.recordingSettings.UPLOAD_ENDPOINT = toggle.checked ? '/chunk_seperate' : '/chunk';
+            endpointDisplay.textContent = window.recordingSettings.UPLOAD_ENDPOINT;
+
+            // Add toggle listener
+            toggle.addEventListener('change', (e) => {
+                window.recordingSettings.UPLOAD_ENDPOINT = e.target.checked ? '/chunk_seperate' : '/chunk';
+                endpointDisplay.textContent = window.recordingSettings.UPLOAD_ENDPOINT;
+                console.log('Endpoint updated to:', window.recordingSettings.UPLOAD_ENDPOINT);
+            });
+
+            // Add other event listeners
+            document.getElementById('startButton').addEventListener('click', () => startRecording());
+            document.getElementById('stopButton').addEventListener('click', () => stopRecording());
+            document.getElementById('clearButton').addEventListener('click', () => clearQueue());
+        });
 
         // Add error display
         window.displayError = function(error) {
             document.getElementById('lastError').textContent = error;
             setTimeout(() => {
                 document.getElementById('lastError').textContent = 'none';
-            }, 5000);  // Clear error after 5 seconds
+            }, 5000);
         }
         
         // Override updateNetworkHealth after it's defined
@@ -41,14 +80,6 @@
             originalUpdateNetworkHealth();
             document.getElementById('queueSize').textContent = queueSize;
             document.getElementById('networkStatus').textContent = networkHealthy ? 'healthy' : 'unhealthy';
-        }
-
-        // Add error display
-        window.displayError = function(error) {
-            document.getElementById('lastError').textContent = error;
-            setTimeout(() => {
-                document.getElementById('lastError').textContent = 'none';
-            }, 5000);  // Clear error after 5 seconds
         }
     </script>
 </body>

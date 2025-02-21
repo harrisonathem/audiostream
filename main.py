@@ -106,3 +106,24 @@ async def receive_chunk(
     raise HTTPException(
         status_code=400, detail=f"Timeout waiting for chunk {chunk_index-1}"
     )
+
+
+@app.post("/chunk_seperate")
+async def receive_chunk(
+    audio: UploadFile,
+    chunk_index: int = Form(...),
+    stream_id: str = Form(...),
+):
+    """Write every chunk seperately to a folder with the name of the stream id"""
+    print(f"\nReceived chunk {chunk_index} for stream {stream_id}")
+    # Make directory if doesn't exist in audio_files
+    if not os.path.exists(f"{AUDIO_FILE_PATH}/{stream_id}"):
+        os.makedirs(f"{AUDIO_FILE_PATH}/{stream_id}")
+        print(f"Created audio directory: {AUDIO_FILE_PATH}/{stream_id}")
+    # Write the chunk to the directory
+    output_file = f"{AUDIO_FILE_PATH}/{stream_id}/{chunk_index}.webm"
+    with open(output_file, "wb") as file:
+        chunk_data = await audio.read()
+        file.write(chunk_data)
+        print(f"Wrote chunk to {output_file}")
+    return {"status": "success"}

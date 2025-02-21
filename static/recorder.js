@@ -10,6 +10,8 @@ let chunkCounter = 0;
 let mediaStream = null;
 let currentStreamId = null;
 let networkHealthy = true;
+let UPLOAD_ENDPOINT = '/chunk_seperate'; // default endpoint
+
 // Initialize IndexedDB
 const initDB = () => {
     return new Promise((resolve, reject) => {
@@ -157,16 +159,18 @@ async function sendChunk(item) {
     formData.append('chunk_index', item.chunkIndex);
     
     try {
-        const response = await fetch('/chunk', {
+        // Use the endpoint from global settings
+        const endpoint = window.recordingSettings.UPLOAD_ENDPOINT;
+        const response = await fetch(endpoint, {
             method: 'POST',
             body: formData
         });
         
         if (response.ok) {
-            console.log(`Successfully sent chunk ${item.chunkIndex}`);
+            console.log(`Successfully sent chunk ${item.chunkIndex} to ${endpoint}`);
             await removeFromQueue(item.id);
         } else {
-            console.log(`Failed to send chunk ${item.chunkIndex}, will retry later`);
+            console.log(`Failed to send chunk ${item.chunkIndex} to ${endpoint}, will retry later`);
             // Update retry count
             const transaction = db.transaction([STORE_NAME], 'readwrite');
             const store = transaction.objectStore(STORE_NAME);
