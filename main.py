@@ -127,3 +127,25 @@ async def receive_chunk(
         file.write(chunk_data)
         print(f"Wrote chunk to {output_file}")
     return {"status": "success"}
+
+
+@app.get("/stream/{stream_id}")
+async def combine_chunks(
+    stream_id: str,
+):
+    """Combine all the chunks of a stream into a single file"""
+    print(f"\nCombining chunks for stream {stream_id}")
+    # Get all the chunks in the directory
+    directory = f"{AUDIO_FILE_PATH}/{stream_id}"
+    if not os.path.exists(directory):
+        raise HTTPException(status_code=400, detail=f"Stream {stream_id} not found")
+    files = os.listdir(directory)
+    files.sort(key=lambda x: int(x.split(".")[0]))
+    # Combine the chunks into a single file
+    output_file = f"{AUDIO_FILE_PATH}/{stream_id}.webm"
+    with open(output_file, "wb") as outfile:
+        for file in files:
+            with open(f"{directory}/{file}", "rb") as infile:
+                outfile.write(infile.read())
+    print(f"Combined chunks into {output_file}")
+    return {"status": "success"}
